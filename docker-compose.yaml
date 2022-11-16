@@ -1,0 +1,58 @@
+version: '3'
+
+services:
+  frontend:
+    build:
+      context: ./frontend
+    container_name: ng_cash_frontend
+    depends_on:
+      backend:
+        condition: service_healthy
+    healthcheck:
+      interval: 1m
+      retries: 5
+      start_period: 20s
+      test: wget --no-verbose --tries=1 --spider http://localhost:3000 || exit 1
+      timeout: 10s
+    ports:
+      - published: 3000
+        target: 3000
+
+  backend:
+    build:
+      context: ./backend
+    container_name: ng_cash_backend
+    depends_on:
+      database:
+        condition: service_healthy
+    environment:
+      - DB_HOST=database
+      - DB_NAME=ng_cash_challenge
+      - DB_PASS=123456
+      - DB_PORT=3306
+      - DB_USER=root
+      - PORT=3001
+    healthcheck:
+      interval: 1m
+      retries: 5
+      start_period: 20s
+      test: wget --no-verbose --tries=1 --spider http://localhost:3001 || exit 1
+      timeout: 10s
+    ports:
+      - published: 3001
+        target: 3001
+  
+  database:
+    container_name: ng_cash_database
+    environment:
+      - MYSQL_ROOT_PASSWORD=123456
+    healthcheck:
+      interval: 1m
+      retries: 5
+      start_period: 20s
+      test: mysqladmin ping -h localhost --port 3306 -uroot -p123456
+      timeout: 10s
+    image: mysql:8
+    ports:
+      - published: 3307
+        target: 3306
