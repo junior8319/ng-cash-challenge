@@ -43,6 +43,47 @@ class UsersController {
                 next(error);
             }
         });
+        this.updateUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                if (!id || !req.body)
+                    return res.status(400)
+                        .json({ message: 'Sem dado para atualizar' });
+                const user = Object.assign(Object.assign({}, req.body), { id });
+                const updatedUser = yield this.service.updateUser(user);
+                if (!updatedUser)
+                    return res.status(403)
+                        .json({
+                        message: 'Não foi possível alterar, provavelmente este nome de ' +
+                            'pessoa usuária já está cadastrado.'
+                    });
+                return res.status(200).json(updatedUser);
+            }
+            catch (error) {
+                console.log(error);
+                next(error);
+            }
+        });
+        this.deleteUser = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { id } = req.params;
+                if (!id)
+                    return res.status(400)
+                        .json({
+                        message: 'Por favor, nos passe um identificador(id) para excluir.',
+                    });
+                this.id = Number(id);
+                const userDeleted = yield this.service.deleteUser(this.id);
+                if (!userDeleted)
+                    return res.status(404)
+                        .json({ message: `Não encontramos usuário com o id ${id}` });
+                return res.status(202).json({ message: 'Registro excluído com sucesso' });
+            }
+            catch (error) {
+                console.log(error);
+                next(error);
+            }
+        });
         this.service = new Users_service_1.default();
     }
 }

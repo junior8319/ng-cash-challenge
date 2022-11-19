@@ -13,7 +13,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Transactions_service_1 = __importDefault(require("../services/Transactions.service"));
-class AccountsController {
+class TransactionsController {
     constructor() {
         this.getTransactions = (_req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
@@ -68,25 +68,7 @@ class AccountsController {
                 next(error);
             }
         });
-        this.updateTransaction = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
-            try {
-                const { id } = req.params;
-                if (!id)
-                    return res.status(400)
-                        .json({
-                        message: 'Por favor, nos passe um identificador(id) para alterar.',
-                    });
-                this.id = Number(id);
-                const transactionToUpdate = (Object.assign(Object.assign({}, req.body), { id: this.id }));
-                yield this.service.updateTransaction(transactionToUpdate);
-                return res.status(200).json(transactionToUpdate);
-            }
-            catch (error) {
-                console.log(error);
-                next(error);
-            }
-        });
         this.service = new Transactions_service_1.default();
     }
 }
-exports.default = new AccountsController();
+exports.default = new TransactionsController();

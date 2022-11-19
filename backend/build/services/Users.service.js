@@ -55,8 +55,14 @@ class UsersService {
             const userToUpdate = yield User_model_1.default.findByPk(this.id);
             if (!userToUpdate)
                 return null;
+            console.log(userToUpdate);
             if (receivedUser.username) {
-                yield userToUpdate.update({ user: receivedUser.username });
+                this.username = receivedUser.username;
+                const alreadyExists = yield UsersService.userExists(this.username);
+                if (alreadyExists)
+                    return null;
+                console.log(alreadyExists);
+                yield userToUpdate.update({ username: receivedUser.username });
             }
             if (receivedUser.password) {
                 yield userToUpdate.update({ password: receivedUser.password });
@@ -66,7 +72,7 @@ class UsersService {
         this.deleteUser = (receivedId) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedId)
                 return null;
-            this.id = Number(receivedId);
+            this.id = receivedId;
             const userToDelete = yield User_model_1.default.findByPk(this.id);
             if (!userToDelete)
                 return null;

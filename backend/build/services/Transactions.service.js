@@ -56,43 +56,6 @@ class TransactionsService {
             yield transactionToDelete.destroy();
             return transactionToDelete;
         });
-        this.updateTransaction = (receivedTransaction) => __awaiter(this, void 0, void 0, function* () {
-            if (!receivedTransaction || !receivedTransaction.id)
-                return null;
-            this.id = receivedTransaction.id;
-            const transactionToUpdate = yield Transaction_model_1.default.findByPk(this.id);
-            if (!transactionToUpdate)
-                return null;
-            this.value = receivedTransaction.value;
-            if (this.value) {
-                yield TransactionsService.undoTransaction(transactionToUpdate);
-                yield TransactionsService.accountsService
-                    .debitToAccount(this.value, transactionToUpdate.debitedAccountId);
-                yield TransactionsService.accountsService
-                    .creditToAccount(this.value, transactionToUpdate.creditedAccountId);
-            }
-            if (receivedTransaction.debitedAccountId) {
-                this.debitedAccountId = receivedTransaction.debitedAccountId;
-                this.value = transactionToUpdate.value;
-                this.creditedAccountId = transactionToUpdate.creditedAccountId;
-                yield TransactionsService.undoTransaction(transactionToUpdate);
-                yield TransactionsService.accountsService
-                    .debitToAccount(this.value, this.debitedAccountId);
-                yield TransactionsService.accountsService
-                    .creditToAccount(this.value, this.creditedAccountId);
-            }
-            if (receivedTransaction.creditedAccountId) {
-                this.creditedAccountId = receivedTransaction.creditedAccountId;
-                this.value = transactionToUpdate.value;
-                this.debitedAccountId = transactionToUpdate.debitedAccountId;
-                yield TransactionsService.undoTransaction(transactionToUpdate);
-                yield TransactionsService.accountsService
-                    .debitToAccount(this.value, this.debitedAccountId);
-                yield TransactionsService.accountsService
-                    .creditToAccount(this.value, this.creditedAccountId);
-            }
-            return transactionToUpdate;
-        });
         TransactionsService.model = new Transaction_model_1.default();
         TransactionsService.accountsService = new Accounts_service_1.default();
     }

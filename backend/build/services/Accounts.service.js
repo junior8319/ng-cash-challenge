@@ -47,12 +47,14 @@ class AccountsService {
             if (!receivedValue || receivedValue <= 0 || !receivedId)
                 return null;
             this.id = receivedId;
-            const accountToCredit = yield Account_model_1.default.findByPk(this.id);
-            if (!accountToCredit)
+            const accountToDebit = yield Account_model_1.default.findByPk(this.id);
+            if (!accountToDebit)
                 return null;
-            this.balance = accountToCredit.balance - receivedValue;
-            yield accountToCredit.update({ balance: this.balance });
-            return accountToCredit;
+            if (accountToDebit.balance < receivedValue)
+                return null;
+            this.balance = accountToDebit.balance - receivedValue;
+            yield accountToDebit.update({ balance: this.balance });
+            return accountToDebit;
         });
         this.deleteAccount = (receivedId) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedId)

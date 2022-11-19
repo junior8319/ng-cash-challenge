@@ -10,5 +10,4 @@ const transactionsRouter = (0, express_1.Router)();
 transactionsRouter.get('/transactions', Transactions_controller_1.default.getTransactions, error_middleware_1.default.handleErrors);
 transactionsRouter.post('/transactions', Transactions_controller_1.default.createTransaction, error_middleware_1.default.handleErrors);
 transactionsRouter.delete('/transactions/:id', Transactions_controller_1.default.deleteTransaction, error_middleware_1.default.handleErrors);
-transactionsRouter.put('/transactions/:id', Transactions_controller_1.default.updateTransaction, error_middleware_1.default.handleErrors);
 exports.default = transactionsRouter;
