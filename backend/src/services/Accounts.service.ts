@@ -27,6 +27,22 @@ class AccountsService {
     return accountsList;
   };
 
+  public getAccountById = async (receivedId: number, tokenId: number): Promise<IAccount | null> => {
+    if (!receivedId || !tokenId || receivedId !== tokenId) return null;
+
+    const account = await AccountModel.findOne(
+      {
+        where: { id: receivedId },
+        include: [
+          { model: UserModel, as: 'user', attributes: { exclude: ['id', 'password'] } },
+        ],
+      }
+    );
+    if (!account) return null;
+
+    return account.dataValues;
+  };
+
   public createAccount = async (receivedAccount: IAccount): Promise<IAccount | null> => {
     if (!receivedAccount) return null;
 
@@ -41,8 +57,9 @@ class AccountsService {
     const accountToCredit = await AccountModel.findByPk(this.id);
     if (!accountToCredit) return null;
 
-    this.balance = accountToCredit.balance + receivedValue;
-    await accountToCredit.update({ balance: this.balance });
+    this.balance = Number(accountToCredit.balance.toFixed(2)) +
+      Number(receivedValue.toFixed(2));
+    await accountToCredit.update({ balance: this.balance.toFixed(2) });
 
     return accountToCredit;
   };
@@ -54,10 +71,12 @@ class AccountsService {
     const accountToDebit = await AccountModel.findByPk(this.id);
     if (!accountToDebit) return null;
 
+    console.log('SALDO INSUFICIENTE?: ', accountToDebit.balance < receivedValue);
     if (accountToDebit.balance < receivedValue) return null;
 
-    this.balance = accountToDebit.balance - receivedValue;
-    await accountToDebit.update({ balance: this.balance });
+    this.balance = Number(accountToDebit.balance.toFixed(2)) -
+      Number(receivedValue.toFixed(2));
+    await accountToDebit.update({ balance: this.balance.toFixed(2) });
 
     return accountToDebit;
   };
