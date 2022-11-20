@@ -18,22 +18,33 @@ const Account_model_1 = __importDefault(require("../database/models/Account.mode
 const Accounts_service_1 = __importDefault(require("./Accounts.service"));
 class TransactionsService {
     constructor() {
-        this.getTransactions = () => __awaiter(this, void 0, void 0, function* () {
-            const transactions = yield Transaction_model_1.default.findAll({
+        this.getTransactions = (tokenId) => __awaiter(this, void 0, void 0, function* () {
+            const debits = yield Transaction_model_1.default.findAll({
+                where: { debitedAccountId: tokenId },
                 include: [
                     { model: Account_model_1.default, as: 'debited from' },
+                    { model: Account_model_1.default, as: 'credited to', attributes: { exclude: ['balance'] } },
+                ],
+            });
+            const credits = yield Transaction_model_1.default.findAll({
+                where: { creditedAccountId: tokenId },
+                include: [
+                    { model: Account_model_1.default, as: 'debited from', attributes: { exclude: ['balance'] } },
                     { model: Account_model_1.default, as: 'credited to' },
                 ],
             });
+            const transactions = [...debits, ...credits];
             if (!transactions)
                 return null;
             return transactions;
         });
-        this.createTransaction = (receivedTransaction) => __awaiter(this, void 0, void 0, function* () {
+        this.createTransaction = (receivedTransaction, tokenId) => __awaiter(this, void 0, void 0, function* () {
             const { debitedAccountId, creditedAccountId } = receivedTransaction;
             if (!debitedAccountId || !creditedAccountId)
                 return null;
             if (debitedAccountId === creditedAccountId)
+                return null;
+            if (debitedAccountId !== tokenId)
                 return null;
             const newTransaction = yield Transaction_model_1.default
                 .create(Object.assign({}, receivedTransaction));

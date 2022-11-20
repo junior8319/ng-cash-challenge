@@ -19,16 +19,47 @@ const User_model_1 = __importDefault(require("../database/models/User.model"));
 const Accounts_service_1 = __importDefault(require("./Accounts.service"));
 class UsersService {
     constructor() {
-        this.getUsers = () => __awaiter(this, void 0, void 0, function* () {
-            const usersList = yield User_model_1.default.findAll({
+        this.getUserById = (receivedId, tokenId) => __awaiter(this, void 0, void 0, function* () {
+            if (!receivedId)
+                return null;
+            this.id = receivedId;
+            if (this.id !== tokenId) {
+                const user = yield User_model_1.default.findOne({
+                    where: { id: this.id },
+                    include: [
+                        { model: Account_model_1.default, as: 'account', attributes: { exclude: ['id', 'balance'] } },
+                    ],
+                    attributes: { exclude: ['password'] },
+                });
+                if (!user)
+                    return null;
+                return user;
+            }
+            const user = yield User_model_1.default.findOne({
+                where: { id: this.id },
                 include: [
                     { model: Account_model_1.default, as: 'account', attributes: { exclude: ['id'] } },
                 ],
                 attributes: { exclude: ['password'] },
             });
-            if (!usersList)
+            if (!user)
                 return null;
-            return usersList;
+            return user;
+        });
+        this.getUserByName = (receivedName) => __awaiter(this, void 0, void 0, function* () {
+            if (!receivedName)
+                return null;
+            this.username = receivedName;
+            const user = yield User_model_1.default.findOne({
+                where: { username: this.username },
+                include: [
+                    { model: Account_model_1.default, as: 'account', attributes: { exclude: ['balance'] } },
+                ],
+                attributes: { exclude: ['password'] },
+            });
+            if (!user)
+                return null;
+            return user;
         });
         this.createUser = (receivedUser) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedUser)

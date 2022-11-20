@@ -26,6 +26,19 @@ class AccountsService {
                 return null;
             return accountsList;
         });
+        this.getAccountById = (receivedId, tokenId) => __awaiter(this, void 0, void 0, function* () {
+            if (!receivedId || !tokenId || receivedId !== tokenId)
+                return null;
+            const account = yield Account_model_1.default.findOne({
+                where: { id: receivedId },
+                include: [
+                    { model: User_model_1.default, as: 'user', attributes: { exclude: ['id', 'password'] } },
+                ],
+            });
+            if (!account)
+                return null;
+            return account.dataValues;
+        });
         this.createAccount = (receivedAccount) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedAccount)
                 return null;
@@ -39,8 +52,9 @@ class AccountsService {
             const accountToCredit = yield Account_model_1.default.findByPk(this.id);
             if (!accountToCredit)
                 return null;
-            this.balance = accountToCredit.balance + receivedValue;
-            yield accountToCredit.update({ balance: this.balance });
+            this.balance = Number(accountToCredit.balance.toFixed(2)) +
+                Number(receivedValue.toFixed(2));
+            yield accountToCredit.update({ balance: this.balance.toFixed(2) });
             return accountToCredit;
         });
         this.debitToAccount = (receivedValue, receivedId) => __awaiter(this, void 0, void 0, function* () {
@@ -50,10 +64,12 @@ class AccountsService {
             const accountToDebit = yield Account_model_1.default.findByPk(this.id);
             if (!accountToDebit)
                 return null;
+            console.log('SALDO INSUFICIENTE?: ', accountToDebit.balance < receivedValue);
             if (accountToDebit.balance < receivedValue)
                 return null;
-            this.balance = accountToDebit.balance - receivedValue;
-            yield accountToDebit.update({ balance: this.balance });
+            this.balance = Number(accountToDebit.balance.toFixed(2)) -
+                Number(receivedValue.toFixed(2));
+            yield accountToDebit.update({ balance: this.balance.toFixed(2) });
             return accountToDebit;
         });
         this.deleteAccount = (receivedId) => __awaiter(this, void 0, void 0, function* () {

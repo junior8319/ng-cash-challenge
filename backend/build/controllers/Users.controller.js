@@ -14,16 +14,46 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 Object.defineProperty(exports, "__esModule", { value: true });
 const Users_service_1 = __importDefault(require("../services/Users.service"));
 const jwtGenerator_1 = __importDefault(require("../helpers/jwtGenerator"));
+const jwtGenerator_2 = __importDefault(require("../helpers/jwtGenerator"));
 class UsersController {
     constructor() {
         this.jwt = jwtGenerator_1.default;
-        this.getUsers = (_req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.getUserById = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
-                const usersList = yield this.service.getUsers();
-                if (!usersList || usersList.length === 0)
+                const { id } = req.params;
+                if (!id)
+                    return null;
+                const { authorization } = req.headers;
+                if (!authorization)
+                    return res.status(401)
+                        .json({ message: 'Token não encontrado.' });
+                const token = yield jwtGenerator_2.default.verify(authorization);
+                if (!token)
+                    return res.status(400).json({ message: 'Não foi possível obter dados do token desta pessoa.' });
+                this.id = Number(id);
+                const user = yield this.service.getUserById(this.id, token.id);
+                if (!user)
                     return res.status(400)
-                        .json({ message: 'Não encontramos pessoas usuárias cadastradas.' });
-                return res.status(200).json(usersList);
+                        .json({ message: 'Não encontramos pessoa usuária cadastrada.' });
+                return res.status(200).json(user);
+            }
+            catch (error) {
+                console.log(error);
+                next(error);
+            }
+        });
+        this.getUserByName = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const { username } = req.body;
+                this.username = username;
+                if (!this.username)
+                    return null;
+                console.log('USERNAME', this.username);
+                const user = yield this.service.getUserByName(this.username);
+                if (!user)
+                    return res.status(404)
+                        .json({ message: 'Não encontramos pessoa usuária cadastrada.' });
+                return res.status(200).json(user);
             }
             catch (error) {
                 console.log(error);
