@@ -1,15 +1,24 @@
 import { Router } from "express";
 import UsersController from "../controllers/Users.controller";
 import errorMiddleware from "../middlewares/error.middleware";
-import validateToken from "../middlewares/validateToken.middleware";
+import validateToken from '../middlewares/validateToken.middleware';
+import validateUser from "../middlewares/validateUser.middleware";
 
 const usersRouter = Router();
 
 usersRouter.get(
+  '/users/:id',
+  validateToken,
+  UsersController.getUserById,
+  errorMiddleware.handleErrors,
+);
+
+usersRouter.get(
   '/users',
   validateToken,
-  UsersController.getUsers,
-  errorMiddleware.handleErrors
+  validateUser,
+  UsersController.getUserByName,
+  errorMiddleware.handleErrors,
 );
 
 usersRouter.post(
