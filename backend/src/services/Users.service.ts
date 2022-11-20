@@ -1,6 +1,6 @@
+import md5 from 'md5';
 import AccountModel from "../database/models/Account.model";
 import UserModel from "../database/models/User.model";
-import IAccount from "../interfaces/IAccount";
 import IUser from "../interfaces/IUser";
 import AccountsService from "./Accounts.service";
 
@@ -14,7 +14,7 @@ class UsersService {
 
   public username!: string;
 
-  public cpf!: string;
+  public password!: string;
 
   public accountid!: number;
 
@@ -55,6 +55,7 @@ class UsersService {
     };
 
     this.username = receivedUser.username;
+    this.password = md5(receivedUser.password);
     const userExists = await UsersService.userExists(this.username);
     if (userExists) return null;
 
@@ -65,6 +66,8 @@ class UsersService {
     const newUser = await UserModel.create({ ...receivedUser, accountid: this.accountid });
     if (!newUser) return null;
     
+    delete newUser.dataValues.password;
+
     return newUser.dataValues;
   };
 
@@ -75,20 +78,18 @@ class UsersService {
 
     const userToUpdate = await UserModel.findByPk(this.id);
     if (!userToUpdate) return null;
-    console.log(userToUpdate);
 
     if (receivedUser.username) {
       this.username = receivedUser.username;
       
       const alreadyExists = await UsersService.userExists(this.username);
       if (alreadyExists) return null;
-      console.log(alreadyExists);
 
       await userToUpdate.update({ username: receivedUser.username });
     }
 
     if (receivedUser.password) {
-      await userToUpdate.update({ password: receivedUser.password });
+      await userToUpdate.update({ password: md5(receivedUser.password) });
     }
 
     return userToUpdate;
