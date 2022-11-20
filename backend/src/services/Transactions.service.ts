@@ -2,6 +2,7 @@ import ITransaction from '../interfaces/ITransaction';
 import TransactionModel from '../database/models/Transaction.model';
 import AccountModel from '../database/models/Account.model';
 import AccountsService from './Accounts.service';
+import { Op } from 'sequelize';
 
 
 class TransactionsService {
@@ -22,25 +23,42 @@ class TransactionsService {
     TransactionsService.accountsService = new AccountsService();
   }
 
-  public getTransactions = async (): Promise<ITransaction[] | null> => {
-    const transactions = await TransactionModel.findAll(
+  public getTransactions = async (tokenId: number): Promise<ITransaction[] | null> => {
+    const debits = await TransactionModel.findAll(
       {
+        where: { debitedAccountId: tokenId },
         include: [
           { model: AccountModel, as: 'debited from' },
-          { model: AccountModel, as: 'credited to' },
+          { model: AccountModel, as: 'credited to', attributes: { exclude: ['balance'] }},
         ],
       }
     );
+
+    const credits = await TransactionModel.findAll(
+      {
+        where: { creditedAccountId: tokenId },
+        include: [
+          { model: AccountModel, as: 'debited from', attributes: { exclude: ['balance'] } },
+          { model: AccountModel, as: 'credited to'},
+        ],
+      }
+    );
+
+    const transactions = [...debits, ...credits]
+
     if (!transactions) return null;
 
     return transactions;
   };
 
   public createTransaction = async (
-    receivedTransaction: ITransaction): Promise<ITransaction | null> => {
+    receivedTransaction: ITransaction,
+    tokenId: number,    
+  ): Promise<ITransaction | null> => {
     const { debitedAccountId, creditedAccountId } = receivedTransaction;
     if (!debitedAccountId || !creditedAccountId) return null;
     if (debitedAccountId === creditedAccountId) return null;
+    if (debitedAccountId !== tokenId) return null;
     
     const newTransaction = await TransactionModel
       .create({ ...receivedTransaction });
