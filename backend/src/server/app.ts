@@ -1,5 +1,10 @@
 import express, { json, NextFunction, Request, Response } from 'express';
-import { accountsRouter, transactionsRouter, usersRouter } from '../routes/index.routes';
+import {
+  accountsRouter,
+  loginRouter,
+  transactionsRouter,
+  usersRouter
+} from '../routes/index.routes';
 
 class App {
   public app: express.Express;
@@ -10,6 +15,7 @@ class App {
     this.app.use(usersRouter);
     this.app.use(accountsRouter);
     this.app.use(transactionsRouter);
+    this.app.use(loginRouter);
     this.middlewares();
 
     this.app.get('/', (_req, res) => res.send('Hello, World!'));
