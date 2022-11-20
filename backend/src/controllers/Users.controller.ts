@@ -1,10 +1,12 @@
 import { NextFunction, Request, Response } from 'express';
 import IUser from '../interfaces/IUser';
 import UsersService from '../services/Users.service';
-import UserModel from '../database/models/User.model';
+import JwtGenerator from '../helpers/jwtGenerator';
 
 class UsersController {
   public service: UsersService;
+
+  public jwt = JwtGenerator;
 
   public user!: IUser;
 
@@ -37,7 +39,11 @@ class UsersController {
         message: `Não foi possível cadastrar pessoa usuária.`,
       });
 
-      return res.status(201).json(newUser);
+      const token = await JwtGenerator.generate(newUser);
+      if (!token) return res.status(400)
+        .json({ message: 'Não foi possível criar um token.' });
+
+      return res.status(201).json({ user: newUser, token });
     } catch (error) {
       console.log(error);
       next(error);
