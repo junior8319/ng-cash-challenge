@@ -30,7 +30,8 @@ TransactionModel.init({
 }, {
     sequelize: _1.default,
     underscored: false,
-    timestamps: false,
+    timestamps: true,
+    updatedAt: false,
     modelName: 'transaction',
     tableName: 'transactions',
 });

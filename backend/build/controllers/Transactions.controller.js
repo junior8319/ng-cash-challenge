@@ -12,13 +12,21 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
+const jwtGenerator_1 = __importDefault(require("../helpers/jwtGenerator"));
 const Transactions_service_1 = __importDefault(require("../services/Transactions.service"));
 class TransactionsController {
     constructor() {
-        this.getTransactions = (_req, res, next) => __awaiter(this, void 0, void 0, function* () {
+        this.getTransactions = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
+                const { authorization } = req.headers;
+                if (!authorization)
+                    return res.status(401)
+                        .json({ message: 'Token não encontrado.' });
+                const token = yield jwtGenerator_1.default.verify(authorization);
+                if (!token)
+                    return res.status(400).json({ message: 'Não foi possível obter dados do token desta pessoa.' });
                 const transactionsList = yield this.service
-                    .getTransactions();
+                    .getTransactions(token.id);
                 if (!transactionsList || transactionsList.length === 0)
                     return res
                         .status(400).json({
@@ -34,8 +42,16 @@ class TransactionsController {
         this.createTransaction = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 this.transaction = req.body;
+                const { authorization } = req.headers;
+                if (!authorization)
+                    return res.status(400)
+                        .json({ message: 'Token não encontrado.' });
+                const isValidToken = yield jwtGenerator_1.default.verify(authorization);
+                if (!isValidToken)
+                    return res.status(400)
+                        .json({ message: 'Token inválido.' });
                 const newTransaction = yield this
-                    .service.createTransaction(this.transaction);
+                    .service.createTransaction(this.transaction, isValidToken.id);
                 if (!newTransaction)
                     return res.status(400)
                         .json({ message: 'Não foi possível cadastrar esta transação.' });

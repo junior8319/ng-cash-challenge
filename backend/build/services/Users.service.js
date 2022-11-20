@@ -13,21 +13,53 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 var _a;
 Object.defineProperty(exports, "__esModule", { value: true });
+const md5_1 = __importDefault(require("md5"));
 const Account_model_1 = __importDefault(require("../database/models/Account.model"));
 const User_model_1 = __importDefault(require("../database/models/User.model"));
 const Accounts_service_1 = __importDefault(require("./Accounts.service"));
 class UsersService {
     constructor() {
-        this.getUsers = () => __awaiter(this, void 0, void 0, function* () {
-            const usersList = yield User_model_1.default.findAll({
+        this.getUserById = (receivedId, tokenId) => __awaiter(this, void 0, void 0, function* () {
+            if (!receivedId)
+                return null;
+            this.id = receivedId;
+            if (this.id !== tokenId) {
+                const user = yield User_model_1.default.findOne({
+                    where: { id: this.id },
+                    include: [
+                        { model: Account_model_1.default, as: 'account', attributes: { exclude: ['id', 'balance'] } },
+                    ],
+                    attributes: { exclude: ['password'] },
+                });
+                if (!user)
+                    return null;
+                return user;
+            }
+            const user = yield User_model_1.default.findOne({
+                where: { id: this.id },
                 include: [
                     { model: Account_model_1.default, as: 'account', attributes: { exclude: ['id'] } },
                 ],
                 attributes: { exclude: ['password'] },
             });
-            if (!usersList)
+            if (!user)
                 return null;
-            return usersList;
+            return user;
+        });
+        this.getUserByName = (receivedName) => __awaiter(this, void 0, void 0, function* () {
+            if (!receivedName)
+                return null;
+            this.username = receivedName;
+            const user = yield User_model_1.default.findOne({
+                where: { username: this.username },
+                include: [
+                    { model: Account_model_1.default, as: 'account', attributes: { exclude: ['balance'] } },
+                ],
+                attributes: { exclude: ['password'] },
+            });
+            if (!user)
+                return null;
+            return user;
         });
         this.createUser = (receivedUser) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedUser)
@@ -36,6 +68,7 @@ class UsersService {
                 balance: 100.00,
             };
             this.username = receivedUser.username;
+            this.password = (0, md5_1.default)(receivedUser.password);
             const userExists = yield UsersService.userExists(this.username);
             if (userExists)
                 return null;
@@ -46,6 +79,7 @@ class UsersService {
             const newUser = yield User_model_1.default.create(Object.assign(Object.assign({}, receivedUser), { accountid: this.accountid }));
             if (!newUser)
                 return null;
+            delete newUser.dataValues.password;
             return newUser.dataValues;
         });
         this.updateUser = (receivedUser) => __awaiter(this, void 0, void 0, function* () {
@@ -55,17 +89,15 @@ class UsersService {
             const userToUpdate = yield User_model_1.default.findByPk(this.id);
             if (!userToUpdate)
                 return null;
-            console.log(userToUpdate);
             if (receivedUser.username) {
                 this.username = receivedUser.username;
                 const alreadyExists = yield UsersService.userExists(this.username);
                 if (alreadyExists)
                     return null;
-                console.log(alreadyExists);
                 yield userToUpdate.update({ username: receivedUser.username });
             }
             if (receivedUser.password) {
-                yield userToUpdate.update({ password: receivedUser.password });
+                yield userToUpdate.update({ password: (0, md5_1.default)(receivedUser.password) });
             }
             return userToUpdate;
         });
