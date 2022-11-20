@@ -7,7 +7,7 @@ const validateToken = async (req: Request, res: Response, next: NextFunction) =>
   if (!authorization) return res.status(401)
     .json({ message: 'Token não encontrado.' });
 
-  const isValidToken = await jwtGenerator.verify(authorization);
+  const isValidToken = await jwtGenerator.verify(authorization); 
 
   if (!isValidToken) return res.status(401)
     .json({ message: 'Token inválido.' });
