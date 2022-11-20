@@ -38,6 +38,7 @@ class App {
         this.app.use(index_routes_1.usersRouter);
         this.app.use(index_routes_1.accountsRouter);
         this.app.use(index_routes_1.transactionsRouter);
+        this.app.use(index_routes_1.loginRouter);
         this.middlewares();
         this.app.get('/', (_req, res) => res.send('Hello, World!'));
     }

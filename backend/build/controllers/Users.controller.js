@@ -13,8 +13,10 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
 };
 Object.defineProperty(exports, "__esModule", { value: true });
 const Users_service_1 = __importDefault(require("../services/Users.service"));
+const jwtGenerator_1 = __importDefault(require("../helpers/jwtGenerator"));
 class UsersController {
     constructor() {
+        this.jwt = jwtGenerator_1.default;
         this.getUsers = (_req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const usersList = yield this.service.getUsers();
@@ -36,7 +38,11 @@ class UsersController {
                     return res.status(400).json({
                         message: `Não foi possível cadastrar pessoa usuária.`,
                     });
-                return res.status(201).json(newUser);
+                const token = yield jwtGenerator_1.default.generate(newUser);
+                if (!token)
+                    return res.status(400)
+                        .json({ message: 'Não foi possível criar um token.' });
+                return res.status(201).json({ user: newUser, token });
             }
             catch (error) {
                 console.log(error);
