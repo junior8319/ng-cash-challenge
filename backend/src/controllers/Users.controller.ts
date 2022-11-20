@@ -2,6 +2,7 @@ import { NextFunction, Request, Response } from 'express';
 import IUser from '../interfaces/IUser';
 import UsersService from '../services/Users.service';
 import JwtGenerator from '../helpers/jwtGenerator';
+import jwtGenerator from '../helpers/jwtGenerator';
 
 class UsersController {
   public service: UsersService;
@@ -12,18 +13,55 @@ class UsersController {
 
   public id!: number;
 
+  public username!: string;
+
   constructor() {
     this.service = new UsersService();
   }
 
-  public getUsers = async (_req: Request, res: Response, next: NextFunction) => {
+  public getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const usersList: IUser[] | null = await this.service.getUsers();
-      
-      if (!usersList || usersList.length === 0) return res.status(400)
-        .json({ message: 'Não encontramos pessoas usuárias cadastradas.' });
+      const { id } = req.params;
+      if (!id) return null;
 
-      return res.status(200).json(usersList);
+      const { authorization } = req.headers;
+
+      if (!authorization) return res.status(401)
+        .json({ message: 'Token não encontrado.' });
+
+      const token = await jwtGenerator.verify(authorization);
+      if (!token) return res.status(400).json(
+        { message: 'Não foi possível obter dados do token desta pessoa.' }
+      );
+
+      this.id = Number(id);
+
+      const user: IUser | null = await this.service.getUserById(this.id, token.id);
+      
+      if (!user) return res.status(400)
+        .json({ message: 'Não encontramos pessoa usuária cadastrada.' });
+
+      return res.status(200).json(user);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
+  public getUserByName = async (req: Request, res: Response, next: NextFunction) => {
+    try {
+      const { username } = req.body;
+      this.username = username;
+
+      if (!this.username) return null;
+      console.log('USERNAME', this.username);
+
+      const user: IUser | null = await this.service.getUserByName(this.username);
+      
+      if (!user) return res.status(404)
+        .json({ message: 'Não encontramos pessoa usuária cadastrada.' });
+
+      return res.status(200).json(user);
     } catch (error) {
       console.log(error);
       next(error);
