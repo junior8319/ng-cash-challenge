@@ -1,4 +1,5 @@
 import { NextFunction, Request, Response } from 'express';
+import jwtGenerator from '../helpers/jwtGenerator';
 import ITransaction from '../interfaces/ITransaction';
 import TransactionsService from '../services/Transactions.service';
 
@@ -13,10 +14,20 @@ class TransactionsController {
     this.service = new TransactionsService();
   }
 
-  public getTransactions = async (_req: Request, res: Response, next: NextFunction) => {
+  public getTransactions = async (req: Request, res: Response, next: NextFunction) => {
     try {
+      const { authorization } = req.headers;
+
+      if (!authorization) return res.status(401)
+        .json({ message: 'Token não encontrado.' });
+
+      const token = await jwtGenerator.verify(authorization);
+      if (!token) return res.status(400).json(
+        { message: 'Não foi possível obter dados do token desta pessoa.' }
+      );
+
       const transactionsList: ITransaction[] | null = await this.service
-        .getTransactions();
+        .getTransactions(token.id);
       
       if (!transactionsList || transactionsList.length === 0) return res
         .status(400).json({
@@ -33,9 +44,16 @@ class TransactionsController {
   public createTransaction = async (req: Request, res: Response, next: NextFunction) => {
     try {
       this.transaction = req.body;
+      const { authorization } = req.headers;
+      if (!authorization) return res.status(400)
+        .json({ message: 'Token não encontrado.' });
+      
+      const isValidToken = await jwtGenerator.verify(authorization);
+      if (!isValidToken) return res.status(400)
+        .json({ message: 'Token inválido.' });
       
       const newTransaction: ITransaction | null = await this
-        .service.createTransaction(this.transaction);
+        .service.createTransaction(this.transaction, isValidToken.id);
       if(!newTransaction) return res.status(400)
         .json({ message: 'Não foi possível cadastrar esta transação.' });
 
