@@ -23,18 +23,55 @@ class UsersService {
     UsersService.accountService = new AccountsService();
   }
 
-  public getUsers = async (): Promise<IUser[] | null> => {
-    const usersList = await UserModel.findAll(
+  public getUserById = async (receivedId: number, tokenId: number): Promise<IUser | null> => {
+    if (!receivedId) return null;
+    this.id = receivedId;
+
+    if (this.id !== tokenId) {
+      const user = await UserModel.findOne(
+        {
+          where: { id: this.id },
+          include: [
+            { model: AccountModel, as: 'account', attributes: { exclude: ['id', 'balance'] } },
+          ],
+          attributes: { exclude: ['password'] },
+        }
+      );
+      if (!user) return null;
+  
+      return user;  
+    }
+
+    const user = await UserModel.findOne(
       {
+        where: { id: this.id },
         include: [
           { model: AccountModel, as: 'account', attributes: { exclude: ['id'] } },
         ],
         attributes: { exclude: ['password'] },
       }
     );
-    if (!usersList) return null;
+    if (!user) return null;
 
-    return usersList;
+    return user;
+  };
+
+  public getUserByName = async (receivedName: string): Promise<IUser | null> => {
+    if (!receivedName) return null;
+    this.username = receivedName;
+
+    const user = await UserModel.findOne(
+      {
+        where: { username: this.username },
+        include: [
+          { model: AccountModel, as: 'account', attributes: { exclude: ['balance'] } },
+        ],
+        attributes: { exclude: ['password'] },
+      }
+    );
+    if (!user) return null;
+
+    return user;
   };
 
   static userExists = async (receivedUserName: string): Promise<boolean> => {
