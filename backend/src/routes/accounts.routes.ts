@@ -5,11 +5,11 @@ import validateToken from "../middlewares/validateToken.middleware";
 
 const accountsRouter = Router();
 
-accountsRouter.get(
-  '/accounts',
-  validateToken,
-  AccountsController.getAccounts,
-  errorMiddleware.handleErrors
-);
+// accountsRouter.get(
+//   '/accounts',
+//   validateToken,
+//   AccountsController.getAccounts,
+//   errorMiddleware.handleErrors
+// );
 
 export default accountsRouter;
