@@ -71,7 +71,6 @@ class AccountsService {
     const accountToDebit = await AccountModel.findByPk(this.id);
     if (!accountToDebit) return null;
 
-    console.log('SALDO INSUFICIENTE?: ', accountToDebit.balance < receivedValue);
     if (accountToDebit.balance < receivedValue) return null;
 
     this.balance = Number(accountToDebit.balance.toFixed(2)) -
