@@ -12,4 +12,10 @@ loginRouter.post(
   errorMiddleware.handleErrors,
 );
 
+loginRouter.post(
+  '/validate',
+  LoginController.userAuth,
+  errorMiddleware.handleErrors,
+);
+
 export default loginRouter;
