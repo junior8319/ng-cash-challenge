@@ -18,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/junior8319/ng-cash-challenge/issues"
   },
-  "homepage": "https://github.com/junior8319/ng-cash-challenge#readme"
+  "homepage": "https://github.com/junior8319/ng-cash-challenge#readme",
+  "dependencies": {
+    "nookies": "^2.5.2"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.5.1"
+  }
 }
