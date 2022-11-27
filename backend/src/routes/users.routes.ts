@@ -16,13 +16,13 @@ usersRouter.get(
 usersRouter.get(
   '/users',
   validateToken,
-  validateUser,
-  UsersController.getUserByName,
+  UsersController.getUsers,
   errorMiddleware.handleErrors,
 );
 
 usersRouter.post(
   '/users',
+  validateUser,
   UsersController.createUser,
   errorMiddleware.handleErrors,
 );
