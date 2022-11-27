@@ -19,6 +19,14 @@ const User_model_1 = __importDefault(require("../database/models/User.model"));
 const Accounts_service_1 = __importDefault(require("./Accounts.service"));
 class UsersService {
     constructor() {
+        this.getUsers = () => __awaiter(this, void 0, void 0, function* () {
+            const usersList = yield User_model_1.default.findAll({
+                attributes: { exclude: ['password'] },
+            });
+            if (!usersList)
+                return null;
+            return usersList;
+        });
         this.getUserById = (receivedId, tokenId) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedId)
                 return null;
@@ -44,7 +52,7 @@ class UsersService {
             });
             if (!user)
                 return null;
-            return user;
+            return user.dataValues;
         });
         this.getUserByName = (receivedName) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedName)
@@ -59,7 +67,7 @@ class UsersService {
             });
             if (!user)
                 return null;
-            return user;
+            return user.dataValues;
         });
         this.createUser = (receivedUser) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedUser)
@@ -76,11 +84,20 @@ class UsersService {
             if (!newAccount || !newAccount.id)
                 return null;
             this.accountid = newAccount.id;
-            const newUser = yield User_model_1.default.create(Object.assign(Object.assign({}, receivedUser), { accountid: this.accountid }));
+            const newUser = yield User_model_1.default.create(Object.assign(Object.assign({}, receivedUser), { password: this.password, accountid: this.accountid }));
             if (!newUser)
                 return null;
             delete newUser.dataValues.password;
-            return newUser.dataValues;
+            const dataToReturn = {
+                id: newUser.dataValues.id,
+                username: newUser.dataValues.username,
+                accountid: newUser.dataValues.accountid,
+                password: '',
+                account: {
+                    balance: newAccount.balance,
+                }
+            };
+            return dataToReturn;
         });
         this.updateUser = (receivedUser) => __awaiter(this, void 0, void 0, function* () {
             if (!receivedUser || !receivedUser.id)

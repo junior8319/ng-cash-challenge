@@ -64,7 +64,6 @@ class AccountsService {
             const accountToDebit = yield Account_model_1.default.findByPk(this.id);
             if (!accountToDebit)
                 return null;
-            console.log('SALDO INSUFICIENTE?: ', accountToDebit.balance < receivedValue);
             if (accountToDebit.balance < receivedValue)
                 return null;
             this.balance = Number(accountToDebit.balance.toFixed(2)) -
