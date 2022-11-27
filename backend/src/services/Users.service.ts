@@ -23,6 +23,17 @@ class UsersService {
     UsersService.accountService = new AccountsService();
   }
 
+  public getUsers = async (): Promise<IUser[] | null> => {
+    const usersList = await UserModel.findAll(
+      {
+        attributes: { exclude: ['password'] },
+      }
+    );
+    if (!usersList) return null;
+
+    return usersList;
+  };
+  
   public getUserById = async (receivedId: number, tokenId: number): Promise<IUser | null> => {
     if (!receivedId) return null;
     this.id = receivedId;
@@ -53,7 +64,7 @@ class UsersService {
     );
     if (!user) return null;
 
-    return user;
+    return user.dataValues;
   };
 
   public getUserByName = async (receivedName: string): Promise<IUser | null> => {
@@ -71,7 +82,7 @@ class UsersService {
     );
     if (!user) return null;
 
-    return user;
+    return user.dataValues;
   };
 
   static userExists = async (receivedUserName: string): Promise<boolean> => {
@@ -100,12 +111,21 @@ class UsersService {
     if (!newAccount || !newAccount.id) return null;
     this.accountid = newAccount.id;
 
-    const newUser = await UserModel.create({ ...receivedUser, accountid: this.accountid });
+    const newUser = await UserModel.create({ ...receivedUser, password: this.password, accountid: this.accountid });
     if (!newUser) return null;
     
     delete newUser.dataValues.password;
+    const dataToReturn = {
+      id: newUser.dataValues.id,
+      username: newUser.dataValues.username,
+      accountid: newUser.dataValues.accountid,
+      password: '',
+      account: {
+        balance: newAccount.balance,
+      }
+    };
 
-    return newUser.dataValues;
+    return dataToReturn;
   };
 
   public updateUser = async (receivedUser: IUser): Promise<IUser | null> => {

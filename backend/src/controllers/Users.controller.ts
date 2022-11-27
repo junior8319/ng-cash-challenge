@@ -19,6 +19,20 @@ class UsersController {
     this.service = new UsersService();
   }
 
+  public getUsers = async (_req: Request, res: Response, next: NextFunction) => {
+    try {
+      const usersList: IUser[] | null = await this.service.getUsers();
+      
+      if (!usersList) return res.status(404)
+        .json({ message: 'Não encontramos pessoas usuárias cadastradas.' });
+
+      return res.status(200).json(usersList);
+    } catch (error) {
+      console.log(error);
+      next(error);
+    }
+  };
+
   public getUserById = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { id } = req.params;
@@ -54,7 +68,6 @@ class UsersController {
       this.username = username;
 
       if (!this.username) return null;
-      console.log('USERNAME', this.username);
 
       const user: IUser | null = await this.service.getUserByName(this.username);
       

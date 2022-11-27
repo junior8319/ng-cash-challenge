@@ -15,20 +15,31 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const User_model_1 = __importDefault(require("../database/models/User.model"));
 const jwtGenerator_1 = __importDefault(require("../helpers/jwtGenerator"));
 const md5_1 = __importDefault(require("md5"));
+const Account_model_1 = __importDefault(require("../database/models/Account.model"));
+const Users_service_1 = __importDefault(require("./Users.service"));
 class Login {
     constructor() {
         this.getUser = (user) => __awaiter(this, void 0, void 0, function* () {
+            var _a;
             const { username } = user;
             if (!username)
                 return null;
             Login.username = username;
-            const userData = yield User_model_1.default.findOne({
-                where: { username: Login.username },
-                attributes: { exclude: ['password'] },
-            });
+            const response = yield Login.service.getUserByName(Login.username);
+            if (!response || !response.id)
+                return null;
+            const userData = yield Login.service.getUserById(response.id, response.id);
             if (!userData)
                 return null;
-            return { user: userData.dataValues };
+            const userToReturn = {
+                id: userData.id,
+                username: userData.username,
+                accountId: userData.accountid,
+                account: {
+                    balance: (_a = userData === null || userData === void 0 ? void 0 : userData.account) === null || _a === void 0 ? void 0 : _a.balance,
+                },
+            };
+            return { user: userToReturn };
         });
         this.generateToken = (user) => __awaiter(this, void 0, void 0, function* () {
             const userData = yield this.getUser(user);
@@ -51,13 +62,20 @@ class Login {
                     username: user.username,
                     password: hashedPassword,
                 },
+                include: [
+                    { model: Account_model_1.default, as: 'account', attributes: { exclude: ['balance'] } },
+                ],
+                attributes: { exclude: ['password'] },
             });
             if (!userData)
                 return null;
             delete userData.dataValues.password;
-            return userData.dataValues;
+            const userLoggedData = yield this.generateToken(userData.dataValues);
+            if (!userLoggedData)
+                return null;
+            return userLoggedData;
         });
-        Login.model = new User_model_1.default();
+        Login.service = new Users_service_1.default();
     }
 }
 exports.default = Login;

@@ -3,4 +3,7 @@ export default interface IUser {
   username: string;
   password: string;
   accountid?: number;
+  account?: {
+    balance?: number;
+  };
 }

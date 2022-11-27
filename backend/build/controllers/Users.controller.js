@@ -18,6 +18,19 @@ const jwtGenerator_2 = __importDefault(require("../helpers/jwtGenerator"));
 class UsersController {
     constructor() {
         this.jwt = jwtGenerator_1.default;
+        this.getUsers = (_req, res, next) => __awaiter(this, void 0, void 0, function* () {
+            try {
+                const usersList = yield this.service.getUsers();
+                if (!usersList)
+                    return res.status(404)
+                        .json({ message: 'Não encontramos pessoas usuárias cadastradas.' });
+                return res.status(200).json(usersList);
+            }
+            catch (error) {
+                console.log(error);
+                next(error);
+            }
+        });
         this.getUserById = (req, res, next) => __awaiter(this, void 0, void 0, function* () {
             try {
                 const { id } = req.params;
@@ -48,7 +61,6 @@ class UsersController {
                 this.username = username;
                 if (!this.username)
                     return null;
-                console.log('USERNAME', this.username);
                 const user = yield this.service.getUserByName(this.username);
                 if (!user)
                     return res.status(404)

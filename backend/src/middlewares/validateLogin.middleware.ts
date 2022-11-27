@@ -1,7 +1,9 @@
 import { NextFunction, Request, Response } from 'express';
 import IUser from '../interfaces/IUser';
+import LoginService from '../services/Login.service';
+import UsersService from '../services/Users.service';
 
-const validateLogin = (req: Request, res: Response, next: NextFunction) => {
+const validateLogin = async (req: Request, res: Response, next: NextFunction) => {
   const user: IUser = req.body;
   const VALID_USERNAME_LENGTH = 3;
   const VALID_PASSWORD = (/(?=.*\d)(?=.*[a-z])(?=.*[A-Z])[A-Za-z0-9]{8,}/g);
@@ -26,6 +28,17 @@ const validateLogin = (req: Request, res: Response, next: NextFunction) => {
         ' menos 1 letra maiúscula e 1 número',
     });
   }
+
+  const userServices = new UsersService();
+
+  const userExists = await userServices.getUserByName(user.username);
+  if (!userExists) return res.status(404)
+    .json({ message: 'Pessoa usuária não encontrada' });
+
+  const loginServices = new LoginService();
+  const dataMatch = await loginServices.login(user);
+  if (!dataMatch) return res.status(403)
+    .json({ message: 'Senha não confere, favor tentar novamente.' });
 
   next();
 };

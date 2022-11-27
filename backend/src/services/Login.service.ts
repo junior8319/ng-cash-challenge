@@ -2,14 +2,16 @@ import UserModel from '../database/models/User.model';
 import IUserLogin, { ILogin } from "../interfaces/ILogin";
 import Jwt from '../helpers/jwtGenerator';
 import md5 from 'md5';
+import AccountModel from '../database/models/Account.model';
+import UsersService from './Users.service';
 
 class Login {
-  static model: UserModel;
+  static service: UsersService;
   
   static username: string;
 
   constructor() {
-    Login.model = new UserModel();
+    Login.service = new UsersService();
   }
 
   public getUser = async (user: IUserLogin): Promise<ILogin | null> => {
@@ -17,14 +19,22 @@ class Login {
     if (!username) return null;
 
     Login.username = username;
-    const userData = await UserModel.findOne({
-      where: { username: Login.username },
-      attributes: { exclude: ['password'] },
-    });
-
+    const response = await Login.service.getUserByName(Login.username);
+    if (!response || !response.id) return null;
+    
+    const userData = await Login.service.getUserById(response.id, response.id);
     if (!userData) return null;
+    
+    const userToReturn = {
+      id: userData.id,
+      username: userData.username,
+      accountId: userData.accountid,
+      account: {
+        balance: userData?.account?.balance,
+      },
+    };
 
-    return { user: userData.dataValues };
+    return { user: userToReturn };
   };
 
   public generateToken = async (user: IUserLogin): Promise<ILogin | null> => {
@@ -50,13 +60,20 @@ class Login {
         username: user.username,
         password: hashedPassword,
       },
+      include: [
+        { model: AccountModel, as: 'account' },
+      ],
+      attributes: { exclude: ['password'] },
     });
 
     if (!userData) return null;
-
+    
     delete userData.dataValues.password;
 
-    return userData.dataValues;
+    const userLoggedData = await this.generateToken(userData.dataValues);
+    if (!userLoggedData) return null;
+
+    return userLoggedData;
   };
 }
 

@@ -13,13 +13,14 @@ class LoginController {
   public login = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const { username, password } = req.body;
+      
       const user: IUserLogin = { username, password };
       const userData = await this.service.login(user);
 
       if (!userData) {
         return res.status(400).json({ message: 'Não foi possível fazer login.' });
       }
-
+      
       return res.status(200).json(userData);
     } catch (error) {
       console.log(error);
@@ -29,17 +30,16 @@ class LoginController {
 
   public userAuth = async (req: Request, res: Response, next: NextFunction) => {
     try {
-      const { authorization } = req.headers;
+      const { authorization } = req.headers;      
 
       if (!authorization) {
         return res.status(401).json({ message: 'Token não encontrado.' });
       }
 
-      console.log('authorization: ', authorization);
       const decoded = await jwtGenerator.verify(authorization);
 
       if (!decoded) {
-        return res.status(401).json({ message: 'Token invalid' });
+        return res.status(401).json({ message: 'Token inválido.' });
       }
 
       return res.status(200).json(decoded);
