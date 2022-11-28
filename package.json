@@ -6,9 +6,6 @@
   "scripts": {
     "compose:up": "docker-compose up -d --build",
     "compose:down": "docker-compose down --remove-orphans",
-    "predevcompose:up": "npm run compose:down",
-    "devcompose:up": "docker-compose -f docker-compose.dev.yaml up -d --build",
-    "postdevcompose:up": "docker-compose logs ng_cash_backend_dev -f",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -21,5 +18,11 @@
   "bugs": {
     "url": "https://github.com/junior8319/ng-cash-challenge/issues"
   },
-  "homepage": "https://github.com/junior8319/ng-cash-challenge#readme"
+  "homepage": "https://github.com/junior8319/ng-cash-challenge#readme",
+  "dependencies": {
+    "nookies": "^2.5.2"
+  },
+  "devDependencies": {
+    "@types/cookie": "^0.5.1"
+  }
 }
